@@ -62,7 +62,7 @@
         
         .dashboard-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
         #avatar-container { width: 60px; height: 60px; border-radius: 50%; background-color: #e0e0e0; overflow: hidden; border: 3px solid var(--primary-end); flex-shrink: 0; }
-        #avatar-container svg { width: 100%; height: 100%; }
+        #avatar-container img { width: 100%; height: 100%; object-fit: cover; }
         #saudacao-usuario { text-align: center; font-size: 1.2em; font-weight: 600; margin-bottom: 0; color: var(--primary-end); }
 
         #tempo-sem-fumar { text-align: center; font-size: 2.2em; font-weight: 800; color: var(--primary-start); margin-bottom: 20px; }
@@ -205,7 +205,7 @@
         let conquistasSalvas = JSON.parse(localStorage.getItem('conquistasSalvas')) || {};
         let diarioSalvo = JSON.parse(localStorage.getItem('diarioSalvo')) || [];
 
-        const tipsList = [ { icon: '💧', text: "Beba um copo de água gelada. Ajuda a ocupar a boca e o corpo." }, { icon: '⏳', text: "A vontade dura apenas alguns minutos. Encontre uma distração rápida!" }, { icon: '💰', text: "Pense em todo o dinheiro que você já economizou. Vale a pena continuar." }, { icon: ❤️', text: "Lembre-se do motivo pelo qual você começou. Visualize a sua saúde a melhorar." }, { icon: '🚶‍♂️', text: "Saia para uma caminhada rápida ou faça alguns alongamentos." }, { icon: '🍬', text: "Masque um chiclete sem açúcar ou coma um snack saudável." } ];
+        const tipsList = [ { icon: '💧', text: "Beba um copo de água gelada. Ajuda a ocupar a boca e o corpo." }, { icon: '⏳', text: "A vontade dura apenas alguns minutos. Encontre uma distração rápida!" }, { icon: '💰', text: "Pense em todo o dinheiro que você já economizou. Vale a pena continuar." }, { icon: '❤️', text: "Lembre-se do motivo pelo qual você começou. Visualize a sua saúde a melhorar." }, { icon: '🚶‍♂️', text: "Saia para uma caminhada rápida ou faça alguns alongamentos." }, { icon: '🍬', text: "Masque um chiclete sem açúcar ou coma um snack saudável." } ];
         const healthMilestones = [ { label: "Pressão e pulso normalizados", hours: 0.33 }, { label: "Nível de oxigénio normalizado", hours: 8 }, { label: "Risco de ataque cardíaco diminui", hours: 24 }, { label: "Olfato e paladar melhoram", hours: 48 }, { label: "Respiração mais fácil", hours: 72 }, { label: "Função pulmonar aumenta 30%", hours: 3 * 30 * 24 }, { label: "Risco de doença cardíaca reduzido a 50%", hours: 1 * 365 * 24 }, ];
         const achievementsList = [ { id: 15, name: "1 Hora", type: 'horas', value: 1, icon: '👍' }, { id: 16, name: "2 Horas", type: 'horas', value: 2, icon: '🙌' }, { id: 17, name: "4 Horas", type: 'horas', value: 4, icon: '💪' }, { id: 18, name: "8 Horas", type: 'horas', value: 8, icon: '🙏' }, { id: 0, name: "12 Horas", type: 'horas', value: 12, icon: '👏' }, { id: 1, name: "1 Dia", type: 'dias', value: 1, icon: '🥇', notify: true }, { id: 19, name: "2 Dias", type: 'dias', value: 2, icon: '✌️' }, { id: 3, name: "1 Semana", type: 'dias', value: 7, icon: '🥈', notify: true }, { id: 22, name: "2 Semanas", type: 'dias', value: 14, icon: ' B' }, { id: 4, name: "1 Mês", type: 'dias', value: 30, icon: '🏆', notify: true }, { id: 11, name: "3 Meses", type: 'dias', value: 90, icon: '🌟', notify: true }, { id: 12, name: "6 Meses", type: 'dias', value: 182, icon: '💎', notify: true }, { id: 13, name: "1 Ano", type: 'dias', value: 365, icon: '👑', notify: true }, { id: 5, name: "100 Cigarros", type: 'cigarros', value: 100, icon: '🚬' }, { id: 6, name: "500 Cigarros", type: 'cigarros', value: 500, icon: '🚭' }, { id: 7, name: "1000 Cigarros", type: 'cigarros', value: 1000, icon: '🎉' }, { id: 20, name: "2000 Cigarros", type: 'cigarros', value: 2000, icon: '🚀' }, { id: 23, name: "3000 Cigarros", type: 'cigarros', value: 3000, icon: '🛰️' }, { id: 8, name: "R$ 50", type: 'dinheiro', value: 50, icon: '💰' }, { id: 9, name: "R$ 200", type: 'dinheiro', value: 200, icon: '💵' }, { id: 10, name: "R$ 500", type: 'dinheiro', value: 500, icon: '🤑' }, { id: 14, name: "R$ 1000", type: 'dinheiro', value: 1000, icon: '🏦', notify: true }, { id: 21, name: "R$ 2500", type: 'dinheiro', value: 2500, icon: '✨', notify: true }, { id: 24, name: "R$ 5000", type: 'dinheiro', value: 5000, icon: '🤯', notify: true } ];
 
@@ -270,15 +270,16 @@
         function atualizarDados(dados) {
             const avatarContainer = document.getElementById('avatar-container');
             if (avatarContainer && !avatarContainer.innerHTML) {
-                const maleAvatar = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 21C20 16.5817 16.4183 13 12 13C7.58172 13 4 16.5817 4 21" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-                const femaleAvatar = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 21C20 16.5817 16.4183 13 12 13C7.58172 13 4 16.5817 4 21" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 9C18 10.1046 16.8807 11 15.5 11C14.1193 11 13 10.1046 13 9" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 9C11 10.1046 9.88071 11 8.5 11C7.11929 11 6 10.1046 6 9" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                // [MODIFICADO] Lógica para usar a sua imagem de avatar
+                const maleAvatarImg = `<img src="icons/avatar-masculino.jpg" alt="Avatar Masculino">`;
+                const femaleAvatarImg = `<img src="icons/avatar-feminino.jpg" alt="Avatar Feminino">`; // Crie uma imagem com este nome
                 
                 if (dados.sexoUsuario === 'masculino') {
-                    avatarContainer.innerHTML = maleAvatar;
+                    avatarContainer.innerHTML = maleAvatarImg;
                 } else if (dados.sexoUsuario === 'feminino') {
-                    avatarContainer.innerHTML = femaleAvatar;
+                    avatarContainer.innerHTML = femaleAvatarImg;
                 } else {
-                    avatarContainer.innerHTML = maleAvatar; 
+                    avatarContainer.innerHTML = maleAvatarImg; // Avatar padrão
                 }
             }
 
