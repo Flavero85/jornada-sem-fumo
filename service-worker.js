@@ -1,15 +1,15 @@
 // service-worker.js
 
-const CACHE_NAME = 'jornada-sem-fumo-v7'; // Versão do cache atualizada
+const CACHE_NAME = 'jornada-sem-fumo-v9'; // Versão do cache atualizada para forçar a atualização
 const urlsToCache = [
   '/',
   'index.html',
   'manifest.json',
-  'icons/icon-192x192.png',
-  'icons/icon-512x512.png',
-  // Adicione os seus avatares aqui para que funcionem offline
-  'icons/avatar-masculino.jpg',
-  'icons/avatar-feminino.jpg'
+  // [CORRIGIDO] Caminhos dos ícones e avatares na pasta raiz
+  'icon-192x192.png',
+  'icon-512x512.png',
+  'avatar-masculino.jpg',
+  'avatar-feminino.jpg'
 ];
 
 self.addEventListener('install', event => {
