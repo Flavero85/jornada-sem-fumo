@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jornada Sem Fumo</title>
+    <meta name="theme-color" content="#256e49"/>
+    <link rel="manifest" href="manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-start: #256e49; --primary-end: #348a5c;
+            --danger-start: #f44336; --danger-end: #d32f2f;
+            --warning-start: #ffa726; --warning-end: #fb8c00;
+            --success-color: #4CAF50; --gold-color: #ffc107;
+            --light-gray: #f4f7f6; --text-color: #333;
+            --white: #ffffff; --shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+            --glow-color: rgba(60, 120, 220, 0.25);
+            --title-green: #1a5938; 
+        }
+        
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #d7f0d8 0%, #95d297 100%); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; box-sizing: border-box; }
+        
+        .card { 
+            background-image: linear-gradient(145deg, #e8f5e9 0%, #ffffff 100%);
+            border-radius: 16px; 
+            box-shadow: var(--shadow), 0 0 35px var(--glow-color); 
+            padding: 25px; 
+            margin-bottom: 25px; 
+            width: 100%; 
+            max-width: 500px; 
+            box-sizing: border-box; 
+            opacity: 0; 
+            transform: translateY(20px); 
+            animation: fadeIn 0.5s forwards; 
+        }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+        
+        h1 { 
+            color: var(--title-green); 
+            font-weight: 800; 
+            font-size: 2.5em; 
+            text-align: center; 
+            margin-bottom: 20px; 
+        }
+        h2 { 
+            text-align: center; 
+            margin-top: 0;
+            color: var(--title-green);
+        }
+
+        button { background-image: linear-gradient(to right, var(--primary-start), var(--primary-end)); color: var(--white); padding: 15px 20px; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; font-weight: 700; margin-top: 15px; width: 100%; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 15px rgba(42, 125, 79, 0.3); }
+        button:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(42, 125, 79, 0.4); }
+        button:active { transform: translateY(-1px) scale(0.98); }
+
+        #configuracao-inicial input, #configuracao-inicial select { width: 100%; padding: 12px; margin-top: 8px; border: 2px solid #e0e0e0; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        #configuracao-inicial label { display: block; margin-top: 15px; font-weight: 600; color: #555; }
+        
+        .dashboard-header { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 15px; }
+        #avatar-container { width: 60px; height: 60px; border-radius: 50%; background-color: #e0e0e0; overflow: hidden; border: 3px solid var(--primary-end); flex-shrink: 0; }
+        #avatar-container svg { width: 100%; height: 100%; }
+        #saudacao-usuario { text-align: center; font-size: 1.2em; font-weight: 600; margin-bottom: 0; color: var(--primary-end); }
+
+        #tempo-sem-fumar { text-align: center; font-size: 2.2em; font-weight: 800; color: var(--primary-start); margin-bottom: 20px; }
+        #tempo-sem-fumar .timer-unit {
+            color: var(--primary-end);
+            font-size: 0.8em;
+            margin-left: 2px;
+        }
+
+        .stats-compact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center; }
+        .stat-compact { background-color: #f9f9f9; padding: 15px; border-radius: 12px; }
+        .stat-compact p { margin: 0; font-size: 0.8em; color: #666; font-weight: 600; }
+        .stat-compact h3 { margin: 5px 0 0; font-size: 1.4em; color: var(--primary-start); font-weight: 700; }
+        .progress-bar { width: 100%; height: 15px; background-color: #e0e0e0; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { width: 0%; height: 100%; background-image: linear-gradient(to right, var(--success-color), #81c784); border-radius: 10px; transition: width 0.5s ease-in-out; }
+        .milestone { margin-bottom: 15px; }
+        .milestone-info { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 8px; font-size: 0.9em;}
+        #conquistas-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 15px; margin-top: 20px; }
+        .conquista { display: flex; flex-direction: column; align-items: center; text-align: center; }
+        .conquista-icone { font-size: 3em; filter: grayscale(1); opacity: 0.4; transition: all 0.5s ease; }
+        .conquista.unlocked .conquista-icone { filter: grayscale(0); opacity: 1; color: var(--gold-color); transform: scale(1.1); }
+        .conquista-nome { font-size: 0.8em; font-weight: 600; margin-top: 5px; }
+        #btn-panico { background-image: linear-gradient(to right, var(--danger-start), var(--danger-end)); box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3); animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
+        #btn-recaida { background-image: linear-gradient(to right, var(--warning-start), var(--warning-end)); box-shadow: 0 4px 15px rgba(255, 167, 38, 0.3); font-size: 14px; padding: 12px; margin-top: 10px; }
+        
+        #btn-reset-total { background-image: linear-gradient(to right, var(--danger-start), var(--danger-end)); box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; animation: fadeIn 0.3s forwards; }
+        .modal-content { background: var(--white); padding: 30px; border-radius: 16px; width: 90%; max-width: 450px; text-align: center; position: relative; transform: scale(0.9); animation: zoomIn 0.3s forwards; }
+        .modal-content p.incentivo { font-style: italic; color: #555; margin-top: 15px; }
+        @keyframes zoomIn { to { transform: scale(1); } }
+        .modal-close { position: absolute; top: 10px; right: 15px; font-size: 2em; cursor: pointer; color: #aaa; }
+        .carousel { position: relative; overflow: hidden; margin: 20px 0; background: #f9f9f9; border-radius: 12px; padding: 20px; }
+        .carousel-track { display: flex; transition: transform 0.5s ease-in-out; }
+        .carousel-slide { min-width: 100%; box-sizing: border-box; font-size: 1.1em; color: #555; display: flex; flex-direction: column; align-items: center; }
+        .carousel-slide .icon { font-size: 2.5em; margin-bottom: 10px; }
+        .carousel-btn { display: none; } /* Esconde as setas */
+        #game-selection { border-top: 1px solid #eee; margin-top: 20px; padding-top: 15px; }
+        .game-btn { font-size: 14px; padding: 12px; margin-top: 10px; }
+        .game-container { min-height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; margin: 20px 0; }
+        .game-score { font-size: 2em; font-weight: 700; }
+        #breathing-circle { width: 100px; height: 100px; background-image: linear-gradient(to bottom, var(--primary-start), var(--primary-end)); border-radius: 50%; transition: transform 4s ease-in-out; }
+        #tap-btn { width: 150px; height: 150px; border-radius: 50%; font-size: 24px; }
+        #color-challenge-word { font-size: 3em; font-weight: 800; margin-bottom: 20px; }
+        #color-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
+        #grafico-container { display: flex; justify-content: space-around; align-items: flex-end; height: 150px; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 15px; }
+        .grafico-barra-wrapper { display: flex; flex-direction: column; align-items: center; flex-grow: 1; font-size: 0.8em; }
+        .grafico-barra { width: 70%; background-image: linear-gradient(to top, var(--primary-start), var(--primary-end)); border-radius: 5px 5px 0 0; transition: height 0.5s ease-out; }
+        .grafico-valor { font-weight: 600; margin-bottom: 5px; }
+        #grafico-total-poupanca { text-align: center; font-size: 1.1em; font-weight: 600; margin-top: 10px; }
+        #diario textarea { width: 100%; min-height: 80px; border: 2px solid #e0e0e0; border-radius: 8px; padding: 10px; font-family: 'Inter', sans-serif; font-size: 1em; box-sizing: border-box; margin-top: 10px; }
+        #diario-registos { margin-top: 20px; max-height: 200px; overflow-y: auto; }
+        .registo-diario { background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: left; }
+        .registo-diario small { font-weight: 600; color: var(--primary-start); }
+        #error-message { color: var(--danger-start); text-align: center; margin-top: 10px; font-weight: 600; min-height: 1.2em; }
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
+        
+        #install-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1001;
+        }
+        #btn-install {
+            background-image: linear-gradient(to right, #1e88e5, #42a5f5);
+            box-shadow: 0 4px 15px rgba(30, 136, 229, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="confetti-canvas"></canvas>
+
+    <header><h1>Jornada Sem Fumo</h1></header>
+    <main>
+        <section id="configuracao-inicial" class="card">
+            <h2>Comece a sua transformação</h2>
+            
+            <label for="nome-usuario">Qual o seu nome?</label>
+            <input type="text" id="nome-usuario" placeholder="Ex: João">
+
+            <label for="idade-usuario">Qual a sua idade?</label>
+            <input type="number" id="idade-usuario" placeholder="Ex: 30" min="1">
+
+            <label for="sexo-usuario">Qual o seu sexo?</label>
+            <select id="sexo-usuario">
+                <option value="masculino" selected>Masculino</option>
+                <option value="feminino">Feminino</option>
+                <option value="outro">Outro</option>
+                <option value="nao-informar">Prefiro não informar</option>
+            </select>
+
+            <label for="cigarros-por-dia">Quantos cigarros fumava por dia?</label>
+            <input type="number" id="cigarros-por-dia" placeholder="Ex: 20" min="1">
+            <label for="preco-maco">Qual o preço do maço (R$)?</label>
+            <input type="number" id="preco-maco" placeholder="Ex: 8.50" step="0.1" min="1">
+            <label for="meta-nome">Qual a sua meta com o dinheiro poupado?</label>
+            <input type="text" id="meta-nome" placeholder="Ex: Comprar um telemóvel novo">
+            <label for="meta-valor">Quanto custa a sua meta (R$)?</label>
+            <input type="number" id="meta-valor" placeholder="Ex: 2000" min="1">
+            
+            <div id="error-message"></div>
+            <button id="btn-iniciar">Começar Jornada</button>
+        </section>
+
+        <div id="app-content" class="hidden">
+            <section id="dashboard" class="card"></section>
+            <section id="panico" class="card"></section>
+            <section id="saude" class="card"></section>
+            <section id="conquistas" class="card"></section>
+            <section id="grafico" class="card"></section>
+            <section id="diario" class="card"></section>
+            <section id="metas" class="card"></section>
+            <section id="opcoes" class="card">
+                <button id="btn-reset-total">Apagar todos os dados</button>
+            </section>
+        </div>
+    </main>
+
+    <div id="panic-modal" class="modal-overlay hidden"></div>
+    <div id="breathing-modal" class="modal-overlay hidden"></div>
+    <div id="fast-tap-modal" class="modal-overlay hidden"></div>
+    <div id="color-focus-modal" class="modal-overlay hidden"></div>
+    <div id="recaida-modal" class="modal-overlay hidden"></div>
+    <div id="reset-modal" class="modal-overlay hidden"></div>
+    
+    <div id="install-container" class="hidden">
+        <button id="btn-install">Instalar App</button>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DADOS E ESTADO ---
+        let updateInterval = null;
+        let activeGame = null;
+        let currentTipIndex = 0;
+        let carouselInterval = null;
+        const dadosSalvos = JSON.parse(localStorage.getItem('dadosFumante'));
+        let conquistasSalvas = JSON.parse(localStorage.getItem('conquistasSalvas')) || {};
+        let diarioSalvo = JSON.parse(localStorage.getItem('diarioSalvo')) || [];
+
+        const tipsList = [ { icon: '💧', text: "Beba um copo de água gelada. Ajuda a ocupar a boca e o corpo." }, { icon: '⏳', text: "A vontade dura apenas alguns minutos. Encontre uma distração rápida!" }, { icon: '💰', text: "Pense em todo o dinheiro que você já economizou. Vale a pena continuar." }, { icon: ❤️', text: "Lembre-se do motivo pelo qual você começou. Visualize a sua saúde a melhorar." }, { icon: '🚶‍♂️', text: "Saia para uma caminhada rápida ou faça alguns alongamentos." }, { icon: '🍬', text: "Masque um chiclete sem açúcar ou coma um snack saudável." } ];
+        const healthMilestones = [ { label: "Pressão e pulso normalizados", hours: 0.33 }, { label: "Nível de oxigénio normalizado", hours: 8 }, { label: "Risco de ataque cardíaco diminui", hours: 24 }, { label: "Olfato e paladar melhoram", hours: 48 }, { label: "Respiração mais fácil", hours: 72 }, { label: "Função pulmonar aumenta 30%", hours: 3 * 30 * 24 }, { label: "Risco de doença cardíaca reduzido a 50%", hours: 1 * 365 * 24 }, ];
+        const achievementsList = [ { id: 15, name: "1 Hora", type: 'horas', value: 1, icon: '👍' }, { id: 16, name: "2 Horas", type: 'horas', value: 2, icon: '🙌' }, { id: 17, name: "4 Horas", type: 'horas', value: 4, icon: '💪' }, { id: 18, name: "8 Horas", type: 'horas', value: 8, icon: '🙏' }, { id: 0, name: "12 Horas", type: 'horas', value: 12, icon: '👏' }, { id: 1, name: "1 Dia", type: 'dias', value: 1, icon: '🥇', notify: true }, { id: 19, name: "2 Dias", type: 'dias', value: 2, icon: '✌️' }, { id: 3, name: "1 Semana", type: 'dias', value: 7, icon: '🥈', notify: true }, { id: 22, name: "2 Semanas", type: 'dias', value: 14, icon: ' B' }, { id: 4, name: "1 Mês", type: 'dias', value: 30, icon: '🏆', notify: true }, { id: 11, name: "3 Meses", type: 'dias', value: 90, icon: '🌟', notify: true }, { id: 12, name: "6 Meses", type: 'dias', value: 182, icon: '💎', notify: true }, { id: 13, name: "1 Ano", type: 'dias', value: 365, icon: '👑', notify: true }, { id: 5, name: "100 Cigarros", type: 'cigarros', value: 100, icon: '🚬' }, { id: 6, name: "500 Cigarros", type: 'cigarros', value: 500, icon: '🚭' }, { id: 7, name: "1000 Cigarros", type: 'cigarros', value: 1000, icon: '🎉' }, { id: 20, name: "2000 Cigarros", type: 'cigarros', value: 2000, icon: '🚀' }, { id: 23, name: "3000 Cigarros", type: 'cigarros', value: 3000, icon: '🛰️' }, { id: 8, name: "R$ 50", type: 'dinheiro', value: 50, icon: '💰' }, { id: 9, name: "R$ 200", type: 'dinheiro', value: 200, icon: '💵' }, { id: 10, name: "R$ 500", type: 'dinheiro', value: 500, icon: '🤑' }, { id: 14, name: "R$ 1000", type: 'dinheiro', value: 1000, icon: '🏦', notify: true }, { id: 21, name: "R$ 2500", type: 'dinheiro', value: 2500, icon: '✨', notify: true }, { id: 24, name: "R$ 5000", type: 'dinheiro', value: 5000, icon: '🤯', notify: true } ];
+
+        // --- FUNÇÕES DE RENDERIZAÇÃO E ATUALIZAÇÃO ---
+        function renderAllSections() {
+            document.getElementById('dashboard').innerHTML = `<div class="dashboard-header"><div id="avatar-container"></div><div id="saudacao-usuario"></div></div><div id="tempo-sem-fumar">--</div><div class="stats-compact-grid"><div class="stat-compact"><p>🚭 CIGARROS EVITADOS</p><h3 id="cigarros-evitados">--</h3></div><div class="stat-compact"><p>💰 ECONOMIA</p><h3 id="dinheiro-economizado">R$ --</h3></div></div><button id="btn-recaida">Tive uma recaída</button>`;
+            document.getElementById('panico').innerHTML = `<button id="btn-panico">Preciso de ajuda agora!</button>`;
+            document.getElementById('saude').innerHTML = `<h2>A sua saúde a recuperar</h2>`;
+            document.getElementById('conquistas').innerHTML = `<h2>Conquistas</h2><div id="conquistas-grid"></div>`;
+            document.getElementById('grafico').innerHTML = `<h2>Poupança Semanal</h2><p id="grafico-total-poupanca">Total economizado: <strong>R$ 0,00</strong></p><div id="grafico-container"></div>`;
+            document.getElementById('diario').innerHTML = `<h2>Diário de Bordo</h2><p>Registe as suas vitórias e desafios diários.</p><textarea id="diario-texto" placeholder="Como se sentiu hoje?"></textarea><button id="salvar-diario">Salvar Registo</button><div id="diario-registos"></div>`;
+            document.getElementById('metas').innerHTML = `<h2>A sua meta</h2><div id="meta-info"></div><div class="progress-bar"><div id="meta-progresso" class="progress-fill"></div></div>`;
+            document.getElementById('opcoes').innerHTML = `<button id="btn-reset-total">Apagar todos os dados</button>`;
+            renderSaude();
+            renderConquistas();
+            renderDiario();
+            setupEventListeners();
+        }
+        function renderSaude() {
+            const saudeSection = document.getElementById('saude');
+            healthMilestones.forEach((m, i) => { saudeSection.innerHTML += `<div class="milestone"><div class="milestone-info"><span>${m.label}</span><span id="milestone-percent-${i}">0%</span></div><div class="progress-bar"><div class="progress-fill" id="milestone-progress-${i}"></div></div></div>`; });
+        }
+        function renderConquistas() {
+            const conquistasGrid = document.getElementById('conquistas-grid');
+            achievementsList.sort((a,b) => a.id - b.id).forEach(ach => { conquistasGrid.innerHTML += `<div class="conquista ${conquistasSalvas[ach.id] ? 'unlocked' : ''}" id="ach-${ach.id}"><div class="conquista-icone">${ach.icon}</div><div class="conquista-nome">${ach.name}</div></div>`; });
+        }
+        function renderDiario() {
+            const container = document.getElementById('diario-registos');
+            container.innerHTML = '';
+            if (diarioSalvo.length === 0) { container.innerHTML = '<p>Nenhum registo ainda.</p>'; return; }
+            diarioSalvo.slice().reverse().forEach(registo => { container.innerHTML += `<div class="registo-diario"><small>${new Date(registo.data).toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' })}</small><p>${registo.texto.replace(/\n/g, '<br>')}</p></div>`; });
+        }
+        function renderGrafico(dados, totalEconomizado) {
+            const container = document.getElementById('grafico-container');
+            const totalEl = document.getElementById('grafico-total-poupanca');
+            if (!container || !dados || !totalEl) return;
+            totalEl.innerHTML = `Total economizado: <strong>R$ ${totalEconomizado.toFixed(2).replace('.', ',')}</strong>`;
+            container.innerHTML = '';
+            const diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            let poupancasDiarias = [];
+            const custoPorMinuto = (dados.cigarrosPorDia * (dados.precoMaco / 20)) / 1440;
+            for (let i = 6; i >= 0; i--) {
+                const hoje = new Date();
+                hoje.setHours(0, 0, 0, 0);
+                const diaAlvo = new Date(hoje.getTime() - i * 86400000);
+                const diaSeguinte = new Date(diaAlvo.getTime() + 86400000);
+                const dataInicio = new Date(dados.dataUltimaRecaida || dados.dataInicio);
+                let minutosNesseDia = 0;
+                if (diaAlvo < new Date() && diaSeguinte > dataInicio) {
+                    const inicioContagem = Math.max(diaAlvo.getTime(), dataInicio.getTime());
+                    const fimContagem = Math.min(diaSeguinte.getTime(), new Date().getTime());
+                    minutosNesseDia = (fimContagem - inicioContagem) / 60000;
+                }
+                poupancasDiarias.push({ dia: diasDaSemana[diaAlvo.getDay()], valor: minutosNesseDia > 0 ? minutosNesseDia * custoPorMinuto : 0 });
+            }
+            const maxPoupanca = Math.max(...poupancasDiarias.map(p => p.valor)) || 1;
+            poupancasDiarias.forEach(p => {
+                const altura = (p.valor / maxPoupanca) * 100;
+                container.innerHTML += `<div class="grafico-barra-wrapper"><div class="grafico-valor">R$${p.valor.toFixed(1)}</div><div class="grafico-barra" style="height: ${altura}%;"></div><div>${p.dia}</div></div>`;
+            });
+        }
+        function atualizarDados(dados) {
+            const avatarContainer = document.getElementById('avatar-container');
+            if (avatarContainer && !avatarContainer.innerHTML) {
+                const maleAvatar = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 21C20 16.5817 16.4183 13 12 13C7.58172 13 4 16.5817 4 21" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                const femaleAvatar = `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 21C20 16.5817 16.4183 13 12 13C7.58172 13 4 16.5817 4 21" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 9C18 10.1046 16.8807 11 15.5 11C14.1193 11 13 10.1046 13 9" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 9C11 10.1046 9.88071 11 8.5 11C7.11929 11 6 10.1046 6 9" stroke="#333" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+                
+                if (dados.sexoUsuario === 'masculino') {
+                    avatarContainer.innerHTML = maleAvatar;
+                } else if (dados.sexoUsuario === 'feminino') {
+                    avatarContainer.innerHTML = femaleAvatar;
+                } else {
+                    avatarContainer.innerHTML = maleAvatar; 
+                }
+            }
+
+            const saudacaoEl = document.getElementById('saudacao-usuario');
+            if (saudacaoEl && saudacaoEl.textContent === '') {
+                saudacaoEl.textContent = `Olá, ${dados.nomeUsuario}! Continue firme.`;
+            }
+
+            const agora = new Date();
+            const dataInicioStreak = new Date(dados.dataUltimaRecaida || dados.dataInicio);
+            const diffMsStreak = agora - dataInicioStreak;
+            
+            const dias = Math.floor(diffMsStreak / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diffMsStreak / (1000 * 60 * 60)) % 24);
+            const minutos = Math.floor((diffMsStreak / 1000 / 60) % 60);
+            const segundos = Math.floor((diffMsStreak / 1000) % 60);
+
+            const diffHoursTotal = (agora - new Date(dados.dataInicio)) / 3600000;
+            
+            const cigarrosEvitadosStreak = Math.floor((dados.cigarrosPorDia / 24) * (diffMsStreak / 3600000));
+            const dinheiroEconomizadoStreak = parseFloat((cigarrosEvitadosStreak * (dados.precoMaco / 20)));
+            
+            const totalCigarrosEvitados = Math.floor((dados.totalCigarrosEvitadosAntesRecaida || 0) + cigarrosEvitadosStreak);
+            const totalDinheiroEconomizado = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+
+            document.getElementById('tempo-sem-fumar').innerHTML = `${dias}<span class="timer-unit">d</span> ${horas}<span class="timer-unit">h</span> ${minutos}<span class="timer-unit">m</span> ${segundos}<span class="timer-unit">s</span>`;
+            document.getElementById('cigarros-evitados').textContent = totalCigarrosEvitados;
+            document.getElementById('dinheiro-economizado').textContent = `R$ ${totalDinheiroEconomizado.toFixed(2).replace('.', ',')}`;
+            
+            const progressoMeta = Math.min(100, (totalDinheiroEconomizado / dados.metaValor) * 100);
+            document.getElementById('meta-info').textContent = `Meta: ${dados.metaNome} (R$ ${dados.metaValor.toFixed(2).replace('.',',')})`;
+            document.getElementById('meta-progresso').style.width = `${progressoMeta}%`;
+
+            healthMilestones.forEach((m, i) => {
+                const progresso = Math.min(100, ((diffMsStreak / 3600000) / m.hours) * 100);
+                const el = document.getElementById(`milestone-progress-${i}`);
+                if (el) el.style.width = `${progresso}%`;
+                const percentEl = document.getElementById(`milestone-percent-${i}`);
+                if (percentEl) percentEl.textContent = `${Math.floor(progresso)}%`;
+            });
+
+            checkAndUnlockAchievements({ dias, horas: diffHoursTotal, cigarros: totalCigarrosEvitados, dinheiro: totalDinheiroEconomizado });
+
+            if (segundos % 15 === 0) { renderGrafico(dados, totalDinheiroEconomizado); }
+        }
+        function checkAndUnlockAchievements(stats) {
+            achievementsList.forEach(ach => {
+                if (conquistasSalvas[ach.id]) return;
+                let achieved = false;
+                if (ach.type === 'horas' && stats.horas >= ach.value) achieved = true;
+                if (ach.type === 'dias' && stats.dias >= ach.value) achieved = true;
+                if (ach.type === 'cigarros' && stats.cigarros >= ach.value) achieved = true;
+                if (ach.type === 'dinheiro' && stats.dinheiro >= ach.value) achieved = true;
+                if (achieved) {
+                    conquistasSalvas[ach.id] = true;
+                    localStorage.setItem('conquistasSalvas', JSON.stringify(conquistasSalvas));
+                    document.getElementById(`ach-${ach.id}`).classList.add('unlocked');
+                    if (ach.notify) {
+                        showNotification('Conquista Desbloqueada!', `Parabéns! Você alcançou: ${ach.name}.`);
+                        triggerConfetti();
+                    }
+                }
+            });
+        }
+        
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const confettiCtx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        function triggerConfetti() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+            confettiParticles = [];
+            const particleCount = 200;
+            const colors = ['#f44336', '#ffc107', '#4caf50', '#2196f3', '#9c27b0'];
+            for (let i = 0; i < particleCount; i++) {
+                confettiParticles.push({
+                    x: Math.random() * confettiCanvas.width,
+                    y: -20,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 3 + 2,
+                    angle: Math.random() * Math.PI * 2,
+                    tilt: Math.random() * 10 - 5
+                });
+            }
+            animateConfetti();
+        }
+        function animateConfetti() {
+            confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            confettiParticles.forEach((p, i) => {
+                p.y += p.speed;
+                p.x += Math.sin(p.angle + p.y / 20) * 2;
+                confettiCtx.fillStyle = p.color;
+                confettiCtx.save();
+                confettiCtx.translate(p.x, p.y);
+                confettiCtx.rotate(p.angle);
+                confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+                confettiCtx.restore();
+                if (p.y > confettiCanvas.height + 20) {
+                    confettiParticles.splice(i, 1);
+                }
+            });
+            if (confettiParticles.length > 0) {
+                requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        // --- LÓGICA DOS MODAIS E JOGOS ---
+        const games = {
+            'breathing': {
+                title: "Foque na sua respiração",
+                content: `<div class="game-container"><div id="breathing-circle"></div></div><p id="breathing-text">Prepare-se...</p>`,
+                onOpen: function(modal) {
+                    const textEl = modal.querySelector('#breathing-text');
+                    const circleEl = modal.querySelector('#breathing-circle');
+                    const cycle = () => { textEl.textContent = "Inspire lentamente..."; circleEl.style.transform = 'scale(1.5)'; setTimeout(() => { textEl.textContent = "Segure o ar."; }, 4000); setTimeout(() => { textEl.textContent = "Expire suavemente..."; circleEl.style.transform = 'scale(1)'; }, 7000); };
+                    cycle();
+                    this.interval = setInterval(cycle, 10000);
+                },
+                onClose: function() { clearInterval(this.interval); }
+            },
+            'fast-tap': {
+                title: "Toque o mais rápido que puder!",
+                content: `<div class="game-container"><p>Tempo: <span id="tap-timer">10</span>s</p><button id="tap-btn">Toque!</button><p class="game-score">Cliques: <span id="tap-score">0</span></p></div>`,
+                onOpen: function(modal) {
+                    let score = 0, timeLeft = 10;
+                    const timerEl = modal.querySelector('#tap-timer');
+                    const scoreEl = modal.querySelector('#tap-score');
+                    const tapBtn = modal.querySelector('#tap-btn');
+                    tapBtn.onclick = () => { if (timeLeft > 0) { score++; scoreEl.textContent = score; } };
+                    this.interval = setInterval(() => { timeLeft--; timerEl.textContent = timeLeft; if (timeLeft <= 0) { clearInterval(this.interval); tapBtn.textContent = "Fim!"; } }, 1000);
+                },
+                onClose: function() { clearInterval(this.interval); }
+            },
+            'color-focus': {
+                title: "Qual é a COR do texto?",
+                content: `<div class="game-container"><p>Pontos: <span id="color-score">0</span></p><div id="color-challenge-word"></div><div id="color-options"></div></div>`,
+                onOpen: function(modal) {
+                    const colors = [ { name: 'VERMELHO', code: '#f44336' }, { name: 'AZUL', code: '#2196f3' }, { name: 'VERDE', code: '#4caf50' }, { name: 'AMARELO', code: '#ffeb3b' } ];
+                    let score = 0;
+                    const scoreEl = modal.querySelector('#color-score');
+                    const wordEl = modal.querySelector('#color-challenge-word');
+                    const optionsEl = modal.querySelector('#color-options');
+                    const nextChallenge = () => {
+                        const text = colors[Math.floor(Math.random() * colors.length)];
+                        const color = colors[Math.floor(Math.random() * colors.length)];
+                        wordEl.textContent = text.name;
+                        wordEl.style.color = color.code;
+                        optionsEl.innerHTML = '';
+                        colors.sort(() => 0.5 - Math.random()).forEach(opt => {
+                            const btn = document.createElement('button');
+                            btn.textContent = opt.name;
+                            btn.onclick = () => { if (opt.code === color.code) { score++; scoreEl.textContent = score; } nextChallenge(); };
+                            optionsEl.appendChild(btn);
+                        });
+                    };
+                    nextChallenge();
+                }
+            }
+        };
+        
+        function setupEventListeners() {
+            document.getElementById('btn-panico').addEventListener('click', openPanicModal);
+            document.getElementById('salvar-diario').addEventListener('click', () => salvarDiario());
+            document.getElementById('btn-recaida').addEventListener('click', openRecaidaModal);
+            document.getElementById('btn-reset-total').addEventListener('click', openResetModal);
+        }
+        function openPanicModal() {
+            const modalEl = document.getElementById('panic-modal');
+            modalEl.innerHTML = `<div class="modal-content"><span class="modal-close">&times;</span><h2>Você é mais forte que a vontade!</h2><div class="carousel"><div class="carousel-track"></div></div><div id="game-selection"><h3>Precisa de uma distração?</h3><button class="game-btn" data-game="breathing">Exercício de Respiração</button><button class="game-btn" data-game="fast-tap">Jogo: Toque Rápido</button><button class="game-btn" data-game="color-focus">Jogo: Foco na Cor</button></div></div>`;
+            const track = modalEl.querySelector('.carousel-track');
+            track.innerHTML = tipsList.map(tip => `<div class="carousel-slide"><div class="icon">${tip.icon}</div><span>${tip.text}</span></div>`).join('');
+            modalEl.querySelector('.modal-close').addEventListener('click', closeAllModals);
+            modalEl.querySelector('#game-selection').addEventListener('click', e => { if (e.target.matches('.game-btn')) launchGame(e.target.dataset.game); });
+            showTip(0);
+            resetCarouselInterval();
+            modalEl.classList.remove('hidden');
+        }
+        function showTip(index) {
+            const track = document.querySelector('#panic-modal .carousel-track');
+            if(track && track.querySelector('.carousel-slide')) {
+                const slideWidth = track.querySelector('.carousel-slide').clientWidth;
+                track.style.transform = `translateX(-${index * slideWidth}px)`;
+                currentTipIndex = index;
+            }
+        }
+        function resetCarouselInterval() {
+            clearInterval(carouselInterval);
+            carouselInterval = setInterval(() => {
+                const newIndex = currentTipIndex < tipsList.length - 1 ? currentTipIndex + 1 : 0;
+                showTip(newIndex);
+            }, 3500);
+        }
+        function closeAllModals() {
+            document.querySelectorAll('.modal-overlay').forEach(modal => modal.classList.add('hidden'));
+            if (activeGame && activeGame.onClose) activeGame.onClose();
+            activeGame = null;
+            clearInterval(carouselInterval);
+        }
+        function launchGame(gameId) {
+            const game = games[gameId];
+            activeGame = game;
+            const modalEl = document.getElementById(`${gameId}-modal`);
+            modalEl.innerHTML = `<div class="modal-content"><span class="modal-close">&times;</span><h2>${game.title}</h2>${game.content}</div>`;
+            modalEl.querySelector('.modal-close').addEventListener('click', closeAllModals);
+            closeAllModals();
+            modalEl.classList.remove('hidden');
+            if (game.onOpen) game.onOpen(modalEl);
+        }
+        function salvarDiario(texto, data = new Date().toISOString()) {
+            const textoParaSalvar = typeof texto === 'string' ? texto : document.getElementById('diario-texto').value;
+            if (textoParaSalvar.trim() === '') return;
+            diarioSalvo.push({ data, texto: textoParaSalvar });
+            localStorage.setItem('diarioSalvo', JSON.stringify(diarioSalvo));
+            if (typeof texto !== 'string') {
+                document.getElementById('diario-texto').value = '';
+            }
+            renderDiario();
+        }
+
+        function openRecaidaModal() {
+            const frasesDeIncentivo = [
+                "Um deslize não define o seu sucesso. A força está em recomeçar.",
+                "Cada dia sem fumar foi uma vitória. Vamos para a próxima!",
+                "A jornada é feita de altos e baixos. O importante é não desistir.",
+                "Você já provou que consegue. Esta é apenas uma nova oportunidade para ser ainda mais forte.",
+                "Seja gentil consigo mesmo. Recomece com a mesma determinação."
+            ];
+            const fraseEscolhida = frasesDeIncentivo[Math.floor(Math.random() * frasesDeIncentivo.length)];
+
+            const modalEl = document.getElementById('recaida-modal');
+            modalEl.innerHTML = `<div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>Recomeçar é parte da jornada</h2>
+                <p>Uma recaída não apaga o seu progresso. Vamos registá-la e continuar. Confirma?</p>
+                <p class="incentivo">"${fraseEscolhida}"</p>
+                <button id="confirmar-recaida">Sim, confirmo</button>
+                <button id="cancelar-recaida" style="background-image: linear-gradient(to right, #aaa, #888);">Cancelar</button>
+            </div>`;
+            modalEl.querySelector('.modal-close').addEventListener('click', closeAllModals);
+            modalEl.querySelector('#cancelar-recaida').addEventListener('click', closeAllModals);
+            modalEl.querySelector('#confirmar-recaida').addEventListener('click', registrarRecaida);
+            modalEl.classList.remove('hidden');
+        }
+        function registrarRecaida() {
+            let dados = JSON.parse(localStorage.getItem('dadosFumante'));
+            const agora = new Date();
+            const dataInicioStreak = new Date(dados.dataUltimaRecaida || dados.dataInicio);
+            const diffMsStreak = agora - dataInicioStreak;
+
+            const dias = Math.floor(diffMsStreak / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diffMsStreak / (1000 * 60 * 60)) % 24);
+            const minutos = Math.floor((diffMsStreak / 1000 / 60) % 60);
+            const tempoAbstinencia = `${dias}d ${horas}h ${minutos}m`;
+
+            const cigarrosEvitadosStreak = Math.floor((dados.cigarrosPorDia / 24) * (diffMsStreak / 3600000));
+            const dinheiroEconomizadoStreak = parseFloat((cigarrosEvitadosStreak * (dados.precoMaco / 20)));
+
+            dados.totalCigarrosEvitadosAntesRecaida = (dados.totalCigarrosEvitadosAntesRecaida || 0) + cigarrosEvitadosStreak;
+            dados.totalDinheiroEconomizadoAntesRecaida = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+            dados.dataUltimaRecaida = agora.toISOString();
+
+            localStorage.setItem('dadosFumante', JSON.stringify(dados));
+            
+            const textoDiario = `Tive uma recaída após ${tempoAbstinencia} sem fumar. Recomeçando, mas sem desistir!`;
+            salvarDiario(textoDiario, agora.toISOString());
+
+            closeAllModals();
+            if (updateInterval) clearInterval(updateInterval);
+            atualizarDados(dados);
+            updateInterval = setInterval(() => atualizarDados(dados), 1000);
+        }
+
+        function openResetModal() {
+            const modalEl = document.getElementById('reset-modal');
+            modalEl.innerHTML = `<div class="modal-content">
+                <span class="modal-close">&times;</span>
+                <h2>Atenção!</h2>
+                <p>Tem a certeza de que quer apagar TODOS os seus dados? Esta ação é irreversível e todo o seu progresso será perdido.</p>
+                <button id="confirmar-reset">Sim, apagar tudo</button>
+                <button id="cancelar-reset" style="background-image: linear-gradient(to right, #aaa, #888);">Cancelar</button>
+            </div>`;
+            modalEl.querySelector('.modal-close').addEventListener('click', closeAllModals);
+            modalEl.querySelector('#cancelar-reset').addEventListener('click', closeAllModals);
+            modalEl.querySelector('#confirmar-reset').addEventListener('click', resetTotal);
+            modalEl.classList.remove('hidden');
+        }
+        function resetTotal() {
+            localStorage.removeItem('dadosFumante');
+            localStorage.removeItem('conquistasSalvas');
+            localStorage.removeItem('diarioSalvo');
+            location.reload();
+        }
+
+        // --- NOTIFICAÇÕES E SERVICE WORKER ---
+        function registerServiceWorker() { 
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registrado com sucesso!', reg))
+                .catch(err => console.error('Falha ao registrar Service Worker:', err));
+            }
+        }
+        function requestNotificationPermission() { if ('Notification' in window) Notification.requestPermission(); }
+        function showNotification(title, body) { if (Notification.permission === 'granted') { navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body, icon: 'icons/icon-192x192.png', vibrate: [200, 100, 200] })); } }
+
+        // --- LÓGICA DE INSTALAÇÃO DO PWA ---
+        let deferredPrompt;
+        const installContainer = document.getElementById('install-container');
+        const installBtn = document.getElementById('btn-install');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installContainer.classList.remove('hidden');
+        });
+
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                console.log(`User response to the install prompt: ${outcome}`);
+                deferredPrompt = null;
+                installContainer.classList.add('hidden');
+            }
+        });
+
+        // --- INICIALIZAÇÃO DO APP ---
+        function iniciarApp(dados) {
+            registerServiceWorker();
+            document.getElementById('configuracao-inicial').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            renderAllSections();
+            if (updateInterval) clearInterval(updateInterval);
+            atualizarDados(dados);
+            updateInterval = setInterval(() => atualizarDados(dados), 1000);
+            setTimeout(requestNotificationPermission, 5000);
+        }
+
+        if (dadosSalvos) {
+            iniciarApp(dadosSalvos);
+        }
+
+        document.getElementById('btn-iniciar').addEventListener('click', () => {
+            const errorEl = document.getElementById('error-message');
+            errorEl.textContent = ''; 
+
+            const nomeUsuario = document.getElementById('nome-usuario').value;
+            const idadeUsuario = document.getElementById('idade-usuario').value;
+            const sexoUsuario = document.getElementById('sexo-usuario').value;
+            const cigarrosPorDia = document.getElementById('cigarros-por-dia').value;
+            const precoMaco = document.getElementById('preco-maco').value;
+            const metaNome = document.getElementById('meta-nome').value;
+            const metaValor = document.getElementById('meta-valor').value;
+
+            if (!nomeUsuario.trim() || !idadeUsuario || !cigarrosPorDia || !precoMaco || !metaNome.trim() || !metaValor) {
+                errorEl.textContent = "Por favor, preencha todos os campos.";
+                return;
+            }
+
+            const dados = {
+                nomeUsuario: nomeUsuario,
+                idadeUsuario: parseFloat(idadeUsuario),
+                sexoUsuario: sexoUsuario,
+                cigarrosPorDia: parseFloat(cigarrosPorDia),
+                precoMaco: parseFloat(precoMaco),
+                metaNome: metaNome,
+                metaValor: parseFloat(metaValor),
+                dataInicio: new Date().toISOString(),
+                dataUltimaRecaida: null,
+                totalCigarrosEvitadosAntesRecaida: 0,
+                totalDinheiroEconomizadoAntesRecaida: 0
+            };
+
+            if (dados.idadeUsuario > 0 && dados.cigarrosPorDia > 0 && dados.precoMaco > 0 && dados.metaValor > 0) {
+                localStorage.setItem('dadosFumante', JSON.stringify(dados));
+                localStorage.setItem('conquistasSalvas', JSON.stringify({}));
+                localStorage.setItem('diarioSalvo', JSON.stringify([]));
+                conquistasSalvas = {};
+                diarioSalvo = [];
+                iniciarApp(dados);
+            } else {
+                errorEl.textContent = "Por favor, insira valores válidos nos campos numéricos.";
+            }
+        });
+    });
+    </script>
+</body>
+</html>
