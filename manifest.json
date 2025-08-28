@@ -2,18 +2,18 @@
   "name": "Jornada Sem Fumo",
   "short_name": "Sem Fumo",
   "description": "Uma aplicação para o ajudar a parar de fumar, acompanhando o seu progresso e mantendo a motivação.",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#d7f0d8",
   "theme_color": "#256e49",
   "icons": [
     {
-      "src": "icon-192x192.png",
+      "src": "./icon-192x192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "icon-512x512.png",
+      "src": "./icon-512x512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
