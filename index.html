@@ -132,14 +132,6 @@
             background-image: linear-gradient(to right, #1e88e5, #42a5f5);
             box-shadow: 0 4px 15px rgba(30, 136, 229, 0.4);
         }
-
-footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color); padding: 20px; border-top: 1px solid var(--border-color); }
-        footer a { color: var(--primary-color); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        footer a { color: var(--primary-color); text-decoration: none; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
-        footer a:hover { text-decoration: underline; }
-        @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
-
-
     </style>
 </head>
 <body>
@@ -147,8 +139,15 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
 
     <header><h1>Jornada Sem Fumo</h1></header>
     <main>
-        <section id="configuracao-inicial" class="card">
-            <h2>Comece a sua transformação</h2>
+        <section id="escolha-jornada" class="card">
+            <h2>Qual jornada você quer começar?</h2>
+            <p>Escolha o seu caminho para uma vida mais saudável. O aplicativo adaptar-se-á a si.</p>
+            <button id="btn-escolhe-cigarro">Parar de Fumar</button>
+            <button id="btn-escolhe-vape" style="margin-top: 10px;">Parar com o Vape</button>
+        </section>
+
+        <section id="configuracao-inicial" class="card hidden">
+            <h2 id="config-titulo">Comece a sua transformação</h2>
             
             <label for="nome-usuario">Qual o seu nome?</label>
             <input type="text" id="nome-usuario" placeholder="Ex: João">
@@ -164,10 +163,24 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
                 <option value="nao-informar">Prefiro não informar</option>
             </select>
 
-            <label for="cigarros-por-dia">Quantos cigarros fumava por dia?</label>
-            <input type="number" id="cigarros-por-dia" placeholder="Ex: 20" min="1">
-            <label for="preco-maco">Qual o preço do maço (R$)?</label>
-            <input type="number" id="preco-maco" placeholder="Ex: 8.50" step="0.1" min="1">
+            <div id="form-cigarro" class="hidden">
+                <label for="cigarros-por-dia">Quantos cigarros fumava por dia?</label>
+                <input type="number" id="cigarros-por-dia" placeholder="Ex: 20" min="1">
+                <label for="preco-maco">Qual o preço do maço (R$)?</label>
+                <input type="number" id="preco-maco" placeholder="Ex: 8.50" step="0.1" min="1">
+            </div>
+
+            <div id="form-vape" class="hidden">
+                <label for="ml-por-semana">Quantos ml de líquido consumia por semana?</label>
+                <input type="number" id="ml-por-semana" placeholder="Ex: 30" min="1">
+                <label for="custo-liquido">Qual o custo do frasco de líquido (R$)?</label>
+                <input type="number" id="custo-liquido" placeholder="Ex: 50.00" step="0.1" min="1">
+                <label for="tamanho-liquido">Qual o tamanho do frasco em ml?</label>
+                <input type="number" id="tamanho-liquido" placeholder="Ex: 60" min="1">
+                <label for="nicotina-mg-ml">Qual a concentração de nicotina (mg/ml)?</label>
+                <input type="number" id="nicotina-mg-ml" placeholder="Ex: 3" min="0">
+            </div>
+
             <label for="meta-nome">Qual a sua meta com o dinheiro poupado?</label>
             <input type="text" id="meta-nome" placeholder="Ex: Comprar um telemóvel novo">
             <label for="meta-valor">Quanto custa a sua meta (R$)?</label>
@@ -201,10 +214,6 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
     <div id="install-container" class="hidden">
         <button id="btn-install">Instalar App</button>
     </div>
-<footer>
-        <p>Desenvolvido por Flavio Rafael</p>
-        <a href="https://flavioitech.com" target="_blank"><i data-lucide="Site"></i><span>Ver Site</span></a>
-    </footer>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -213,17 +222,20 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
         let activeGame = null;
         let currentTipIndex = 0;
         let carouselInterval = null;
-        const dadosSalvos = JSON.parse(localStorage.getItem('dadosFumante'));
+        let tipoJornadaSelecionada = null;
+        let dadosSalvos = JSON.parse(localStorage.getItem('dadosFumante'));
         let conquistasSalvas = JSON.parse(localStorage.getItem('conquistasSalvas')) || {};
         let diarioSalvo = JSON.parse(localStorage.getItem('diarioSalvo')) || [];
 
         const tipsList = [ { icon: '💧', text: "Beba um copo de água gelada. Ajuda a ocupar a boca e o corpo." }, { icon: '⏳', text: "A vontade dura apenas alguns minutos. Encontre uma distração rápida!" }, { icon: '💰', text: "Pense em todo o dinheiro que você já economizou. Vale a pena continuar." }, { icon: '❤️', text: "Lembre-se do motivo pelo qual você começou. Visualize a sua saúde a melhorar." }, { icon: '🚶‍♂️', text: "Saia para uma caminhada rápida ou faça alguns alongamentos." }, { icon: '🍬', text: "Masque um chiclete sem açúcar ou coma um snack saudável." } ];
         const healthMilestones = [ { label: "Pressão e pulso normalizados", hours: 0.33 }, { label: "Nível de oxigénio normalizado", hours: 8 }, { label: "Risco de ataque cardíaco diminui", hours: 24 }, { label: "Olfato e paladar melhoram", hours: 48 }, { label: "Respiração mais fácil", hours: 72 }, { label: "Função pulmonar aumenta 30%", hours: 3 * 30 * 24 }, { label: "Risco de doença cardíaca reduzido a 50%", hours: 1 * 365 * 24 }, ];
-        const achievementsList = [ { id: 15, name: "1 Hora", type: 'horas', value: 1, icon: '👍' }, { id: 16, name: "2 Horas", type: 'horas', value: 2, icon: '🙌' }, { id: 17, name: "4 Horas", type: 'horas', value: 4, icon: '💪' }, { id: 18, name: "8 Horas", type: 'horas', value: 8, icon: '🙏' }, { id: 0, name: "12 Horas", type: 'horas', value: 12, icon: '👏' }, { id: 1, name: "1 Dia", type: 'dias', value: 1, icon: '🥇', notify: true }, { id: 19, name: "2 Dias", type: 'dias', value: 2, icon: '✌️' }, { id: 3, name: "1 Semana", type: 'dias', value: 7, icon: '🥈', notify: true }, { id: 22, name: "2 Semanas", type: 'dias', value: 14, icon: ' B' }, { id: 4, name: "1 Mês", type: 'dias', value: 30, icon: '🏆', notify: true }, { id: 11, name: "3 Meses", type: 'dias', value: 90, icon: '🌟', notify: true }, { id: 12, name: "6 Meses", type: 'dias', value: 182, icon: '💎', notify: true }, { id: 13, name: "1 Ano", type: 'dias', value: 365, icon: '👑', notify: true }, { id: 5, name: "100 Cigarros", type: 'cigarros', value: 100, icon: '🚬' }, { id: 6, name: "500 Cigarros", type: 'cigarros', value: 500, icon: '🚭' }, { id: 7, name: "1000 Cigarros", type: 'cigarros', value: 1000, icon: '🎉' }, { id: 20, name: "2000 Cigarros", type: 'cigarros', value: 2000, icon: '🚀' }, { id: 23, name: "3000 Cigarros", type: 'cigarros', value: 3000, icon: '🛰️' }, { id: 8, name: "R$ 50", type: 'dinheiro', value: 50, icon: '💰' }, { id: 9, name: "R$ 200", type: 'dinheiro', value: 200, icon: '💵' }, { id: 10, name: "R$ 500", type: 'dinheiro', value: 500, icon: '🤑' }, { id: 14, name: "R$ 1000", type: 'dinheiro', value: 1000, icon: '🏦', notify: true }, { id: 21, name: "R$ 2500", type: 'dinheiro', value: 2500, icon: '✨', notify: true }, { id: 24, name: "R$ 5000", type: 'dinheiro', value: 5000, icon: '🤯', notify: true } ];
+        
+        const achievementsCigarro = [ { id: 15, name: "1 Hora", type: 'horas', value: 1, icon: '👍' }, { id: 16, name: "2 Horas", type: 'horas', value: 2, icon: '🙌' }, { id: 17, name: "4 Horas", type: 'horas', value: 4, icon: '💪' }, { id: 18, name: "8 Horas", type: 'horas', value: 8, icon: '🙏' }, { id: 0, name: "12 Horas", type: 'horas', value: 12, icon: '👏' }, { id: 1, name: "1 Dia", type: 'dias', value: 1, icon: '🥇', notify: true }, { id: 19, name: "2 Dias", type: 'dias', value: 2, icon: '✌️' }, { id: 3, name: "1 Semana", type: 'dias', value: 7, icon: '🥈', notify: true }, { id: 22, name: "2 Semanas", type: 'dias', value: 14, icon: ' B' }, { id: 4, name: "1 Mês", type: 'dias', value: 30, icon: '🏆', notify: true }, { id: 11, name: "3 Meses", type: 'dias', value: 90, icon: '🌟', notify: true }, { id: 12, name: "6 Meses", type: 'dias', value: 182, icon: '💎', notify: true }, { id: 13, name: "1 Ano", type: 'dias', value: 365, icon: '👑', notify: true }, { id: 5, name: "100 Cigarros", type: 'cigarros', value: 100, icon: '🚬' }, { id: 6, name: "500 Cigarros", type: 'cigarros', value: 500, icon: '🚭' }, { id: 7, name: "1000 Cigarros", type: 'cigarros', value: 1000, icon: '🎉' }, { id: 20, name: "2000 Cigarros", type: 'cigarros', value: 2000, icon: '🚀' }, { id: 23, name: "3000 Cigarros", type: 'cigarros', value: 3000, icon: '🛰️' }, { id: 8, name: "R$ 50", type: 'dinheiro', value: 50, icon: '💰' }, { id: 9, name: "R$ 200", type: 'dinheiro', value: 200, icon: '💵' }, { id: 10, name: "R$ 500", type: 'dinheiro', value: 500, icon: '🤑' }, { id: 14, name: "R$ 1000", type: 'dinheiro', value: 1000, icon: '🏦', notify: true }, { id: 21, name: "R$ 2500", type: 'dinheiro', value: 2500, icon: '✨', notify: true }, { id: 24, name: "R$ 5000", type: 'dinheiro', value: 5000, icon: '🤯', notify: true } ];
+        const achievementsVape = [ { id: 15, name: "1 Hora", type: 'horas', value: 1, icon: '👍' }, { id: 1, name: "1 Dia", type: 'dias', value: 1, icon: '🥇', notify: true }, { id: 3, name: "1 Semana", type: 'dias', value: 7, icon: '🥈', notify: true }, { id: 4, name: "1 Mês", type: 'dias', value: 30, icon: '🏆', notify: true }, { id: 11, name: "3 Meses", type: 'dias', value: 90, icon: '🌟', notify: true }, { id: 13, name: "1 Ano", type: 'dias', value: 365, icon: '👑', notify: true }, { id: 5, name: "250mg Nicotina", type: 'nicotina', value: 250, icon: '💧' }, { id: 6, name: "1000mg Nicotina", type: 'nicotina', value: 1000, icon: '🧪' }, { id: 7, name: "2500mg Nicotina", type: 'nicotina', value: 2500, icon: '🎉' }, { id: 25, name: "1 Frasco Poupado", type: 'liquido', value: 1, icon: '🍾' }, { id: 26, name: "5 Frascos Poupados", type: 'liquido', value: 5, icon: '🥂' }, { id: 27, name: "10 Frascos Poupados", type: 'liquido', value: 10, icon: '📦' }, { id: 8, name: "R$ 50", type: 'dinheiro', value: 50, icon: '💰' }, { id: 9, name: "R$ 200", type: 'dinheiro', value: 200, icon: '💵' }, { id: 10, name: "R$ 500", type: 'dinheiro', value: 500, icon: '🤑' }, { id: 14, name: "R$ 1000", type: 'dinheiro', value: 1000, icon: '🏦', notify: true } ];
 
         // --- FUNÇÕES DE RENDERIZAÇÃO E ATUALIZAÇÃO ---
         function renderAllSections() {
-            document.getElementById('dashboard').innerHTML = `<div class="dashboard-header"><div id="avatar-container"></div><div id="saudacao-usuario"></div></div><div id="tempo-sem-fumar">--</div><div class="stats-compact-grid"><div class="stat-compact"><p>🚭 CIGARROS EVITADOS</p><h3 id="cigarros-evitados">--</h3></div><div class="stat-compact"><p>💰 ECONOMIA</p><h3 id="dinheiro-economizado">R$ --</h3></div></div><button id="btn-recaida">Tive uma recaída</button>`;
+            document.getElementById('dashboard').innerHTML = `<div class="dashboard-header"><div id="avatar-container"></div><div id="saudacao-usuario"></div></div><div id="tempo-sem-fumar">--</div><div class="stats-compact-grid"><div class="stat-compact"><p id="stat-principal-label">--</p><h3 id="stat-principal-valor">--</h3></div><div class="stat-compact"><p>💰 ECONOMIA</p><h3 id="dinheiro-economizado">R$ --</h3></div></div><button id="btn-recaida">Tive uma recaída</button>`;
             document.getElementById('panico').innerHTML = `<button id="btn-panico">Preciso de ajuda agora!</button>`;
             document.getElementById('saude').innerHTML = `<h2>A sua saúde a recuperar</h2>`;
             document.getElementById('conquistas').innerHTML = `<h2>Conquistas</h2><div id="conquistas-grid"></div>`;
@@ -231,6 +243,7 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
             document.getElementById('diario').innerHTML = `<h2>Diário de Bordo</h2><p>Registe as suas vitórias e desafios diários.</p><textarea id="diario-texto" placeholder="Como se sentiu hoje?"></textarea><button id="salvar-diario">Salvar Registo</button><div id="diario-registos"></div>`;
             document.getElementById('metas').innerHTML = `<h2>A sua meta</h2><div id="meta-info"></div><div class="progress-bar"><div id="meta-progresso" class="progress-fill"></div></div>`;
             document.getElementById('opcoes').innerHTML = `<button id="btn-reset-total">Apagar todos os dados</button>`;
+            
             renderSaude();
             renderConquistas();
             renderDiario();
@@ -242,6 +255,9 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
         }
         function renderConquistas() {
             const conquistasGrid = document.getElementById('conquistas-grid');
+            if (!conquistasGrid) return;
+            const achievementsList = dadosSalvos.tipoJornada === 'vape' ? achievementsVape : achievementsCigarro;
+            conquistasGrid.innerHTML = '';
             achievementsList.sort((a,b) => a.id - b.id).forEach(ach => { conquistasGrid.innerHTML += `<div class="conquista ${conquistasSalvas[ach.id] ? 'unlocked' : ''}" id="ach-${ach.id}"><div class="conquista-icone">${ach.icon}</div><div class="conquista-nome">${ach.name}</div></div>`; });
         }
         function renderDiario() {
@@ -258,7 +274,16 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
             container.innerHTML = '';
             const diasDaSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
             let poupancasDiarias = [];
-            const custoPorMinuto = (dados.cigarrosPorDia * (dados.precoMaco / 20)) / 1440;
+            
+            let custoPorMinuto;
+            if (dados.tipoJornada === 'cigarro') {
+                custoPorMinuto = (dados.cigarrosPorDia * (dados.precoMaco / 20)) / 1440;
+            } else { // vape
+                const custoPorMl = dados.custoLiquido / dados.tamanhoLiquido;
+                const mlPorMinuto = dados.mlPorSemana / (7 * 24 * 60);
+                custoPorMinuto = mlPorMinuto * custoPorMl;
+            }
+
             for (let i = 6; i >= 0; i--) {
                 const hoje = new Date();
                 hoje.setHours(0, 0, 0, 0);
@@ -282,17 +307,11 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
         function atualizarDados(dados) {
             const avatarContainer = document.getElementById('avatar-container');
             if (avatarContainer && !avatarContainer.innerHTML) {
-                // [MODIFICADO] Lógica para usar a sua imagem de avatar
                 const maleAvatarImg = `<img src="icon-512x512.png" alt="Avatar Masculino">`;
-                const femaleAvatarImg = `<img src="icons/avatar-feminino.jpg" alt="Avatar Feminino">`; // Crie uma imagem com este nome
-                
-                if (dados.sexoUsuario === 'masculino') {
-                    avatarContainer.innerHTML = maleAvatarImg;
-                } else if (dados.sexoUsuario === 'feminino') {
-                    avatarContainer.innerHTML = femaleAvatarImg;
-                } else {
-                    avatarContainer.innerHTML = maleAvatarImg; // Avatar padrão
-                }
+                const femaleAvatarImg = `<img src="icons/avatar-feminino.jpg" alt="Avatar Feminino">`; 
+                if (dados.sexoUsuario === 'masculino') { avatarContainer.innerHTML = maleAvatarImg; } 
+                else if (dados.sexoUsuario === 'feminino') { avatarContainer.innerHTML = femaleAvatarImg; } 
+                else { avatarContainer.innerHTML = maleAvatarImg; }
             }
 
             const saudacaoEl = document.getElementById('saudacao-usuario');
@@ -308,17 +327,40 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
             const horas = Math.floor((diffMsStreak / (1000 * 60 * 60)) % 24);
             const minutos = Math.floor((diffMsStreak / 1000 / 60) % 60);
             const segundos = Math.floor((diffMsStreak / 1000) % 60);
+            const diffHoursTotal = (new Date() - new Date(dados.dataInicio)) / 3600000;
+            const diffHoursStreak = diffMsStreak / 3600000;
+            
+            let totalDinheiroEconomizado, statsParaConquistas = {};
 
-            const diffHoursTotal = (agora - new Date(dados.dataInicio)) / 3600000;
-            
-            const cigarrosEvitadosStreak = Math.floor((dados.cigarrosPorDia / 24) * (diffMsStreak / 3600000));
-            const dinheiroEconomizadoStreak = parseFloat((cigarrosEvitadosStreak * (dados.precoMaco / 20)));
-            
-            const totalCigarrosEvitados = Math.floor((dados.totalCigarrosEvitadosAntesRecaida || 0) + cigarrosEvitadosStreak);
-            const totalDinheiroEconomizado = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+            if (dados.tipoJornada === 'cigarro') {
+                const cigarrosEvitadosStreak = Math.floor((dados.cigarrosPorDia / 24) * diffHoursStreak);
+                const dinheiroEconomizadoStreak = parseFloat((cigarrosEvitadosStreak * (dados.precoMaco / 20)));
+                const totalCigarrosEvitados = Math.floor((dados.totalCigarrosEvitadosAntesRecaida || 0) + cigarrosEvitadosStreak);
+                totalDinheiroEconomizado = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+
+                document.getElementById('stat-principal-label').textContent = '🚭 CIGARROS EVITADOS';
+                document.getElementById('stat-principal-valor').textContent = totalCigarrosEvitados;
+                statsParaConquistas = { dias, horas: diffHoursTotal, cigarros: totalCigarrosEvitados, dinheiro: totalDinheiroEconomizado };
+
+            } else { // vape
+                const mlPorMs = dados.mlPorSemana / (7 * 24 * 60 * 60 * 1000);
+                const custoPorMl = dados.custoLiquido / dados.tamanhoLiquido;
+                
+                const mlEvitadosStreak = diffMsStreak * mlPorMs;
+                const dinheiroEconomizadoStreak = mlEvitadosStreak * custoPorMl;
+                const nicotinaEvitadaStreak = mlEvitadosStreak * dados.nicotinaMgMl;
+
+                const totalMlEvitados = (dados.totalMlEvitadosAntesRecaida || 0) + mlEvitadosStreak;
+                const totalNicotinaEvitada = (dados.totalNicotinaEvitadaAntesRecaida || 0) + nicotinaEvitadaStreak;
+                const totalFrascosPoupados = totalMlEvitados / dados.tamanhoLiquido;
+                totalDinheiroEconomizado = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+
+                document.getElementById('stat-principal-label').textContent = '💧 NICOTINA EVITADA (mg)';
+                document.getElementById('stat-principal-valor').textContent = totalNicotinaEvitada.toFixed(0);
+                statsParaConquistas = { dias, horas: diffHoursTotal, nicotina: totalNicotinaEvitada, liquido: totalFrascosPoupados, dinheiro: totalDinheiroEconomizado };
+            }
 
             document.getElementById('tempo-sem-fumar').innerHTML = `${dias}<span class="timer-unit">d</span> ${horas}<span class="timer-unit">h</span> ${minutos}<span class="timer-unit">m</span> ${segundos}<span class="timer-unit">s</span>`;
-            document.getElementById('cigarros-evitados').textContent = totalCigarrosEvitados;
             document.getElementById('dinheiro-economizado').textContent = `R$ ${totalDinheiroEconomizado.toFixed(2).replace('.', ',')}`;
             
             const progressoMeta = Math.min(100, (totalDinheiroEconomizado / dados.metaValor) * 100);
@@ -326,29 +368,33 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
             document.getElementById('meta-progresso').style.width = `${progressoMeta}%`;
 
             healthMilestones.forEach((m, i) => {
-                const progresso = Math.min(100, ((diffMsStreak / 3600000) / m.hours) * 100);
-                const el = document.getElementById(`milestone-progress-${i}`);
-                if (el) el.style.width = `${progresso}%`;
-                const percentEl = document.getElementById(`milestone-percent-${i}`);
-                if (percentEl) percentEl.textContent = `${Math.floor(progresso)}%`;
+                const progresso = Math.min(100, (diffHoursStreak / m.hours) * 100);
+                const elProg = document.getElementById(`milestone-progress-${i}`);
+                const elPerc = document.getElementById(`milestone-percent-${i}`);
+                if (elProg) elProg.style.width = `${progresso}%`;
+                if (elPerc) elPerc.textContent = `${Math.floor(progresso)}%`;
             });
 
-            checkAndUnlockAchievements({ dias, horas: diffHoursTotal, cigarros: totalCigarrosEvitados, dinheiro: totalDinheiroEconomizado });
+            checkAndUnlockAchievements(statsParaConquistas);
 
             if (segundos % 15 === 0) { renderGrafico(dados, totalDinheiroEconomizado); }
         }
         function checkAndUnlockAchievements(stats) {
+            const achievementsList = dadosSalvos.tipoJornada === 'vape' ? achievementsVape : achievementsCigarro;
             achievementsList.forEach(ach => {
                 if (conquistasSalvas[ach.id]) return;
                 let achieved = false;
                 if (ach.type === 'horas' && stats.horas >= ach.value) achieved = true;
                 if (ach.type === 'dias' && stats.dias >= ach.value) achieved = true;
                 if (ach.type === 'cigarros' && stats.cigarros >= ach.value) achieved = true;
+                if (ach.type === 'nicotina' && stats.nicotina >= ach.value) achieved = true;
+                if (ach.type === 'liquido' && stats.liquido >= ach.value) achieved = true;
                 if (ach.type === 'dinheiro' && stats.dinheiro >= ach.value) achieved = true;
                 if (achieved) {
                     conquistasSalvas[ach.id] = true;
                     localStorage.setItem('conquistasSalvas', JSON.stringify(conquistasSalvas));
-                    document.getElementById(`ach-${ach.id}`).classList.add('unlocked');
+                    const achEl = document.getElementById(`ach-${ach.id}`);
+                    if (achEl) achEl.classList.add('unlocked');
                     if (ach.notify) {
                         showNotification('Conquista Desbloqueada!', `Parabéns! Você alcançou: ${ach.name}.`);
                         triggerConfetti();
@@ -514,24 +560,10 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
         }
 
         function openRecaidaModal() {
-            const frasesDeIncentivo = [
-                "Um deslize não define o seu sucesso. A força está em recomeçar.",
-                "Cada dia sem fumar foi uma vitória. Vamos para a próxima!",
-                "A jornada é feita de altos e baixos. O importante é não desistir.",
-                "Você já provou que consegue. Esta é apenas uma nova oportunidade para ser ainda mais forte.",
-                "Seja gentil consigo mesmo. Recomece com a mesma determinação."
-            ];
+            const frasesDeIncentivo = [ "Um deslize não define o seu sucesso. A força está em recomeçar.", "Cada dia sem fumar foi uma vitória. Vamos para a próxima!", "A jornada é feita de altos e baixos. O importante é não desistir.", "Você já provou que consegue. Esta é apenas uma nova oportunidade para ser ainda mais forte.", "Seja gentil consigo mesmo. Recomece com a mesma determinação." ];
             const fraseEscolhida = frasesDeIncentivo[Math.floor(Math.random() * frasesDeIncentivo.length)];
-
             const modalEl = document.getElementById('recaida-modal');
-            modalEl.innerHTML = `<div class="modal-content">
-                <span class="modal-close">&times;</span>
-                <h2>Recomeçar é parte da jornada</h2>
-                <p>Uma recaída não apaga o seu progresso. Vamos registá-la e continuar. Confirma?</p>
-                <p class="incentivo">"${fraseEscolhida}"</p>
-                <button id="confirmar-recaida">Sim, confirmo</button>
-                <button id="cancelar-recaida" style="background-image: linear-gradient(to right, #aaa, #888);">Cancelar</button>
-            </div>`;
+            modalEl.innerHTML = `<div class="modal-content"><span class="modal-close">&times;</span><h2>Recomeçar é parte da jornada</h2><p>Uma recaída não apaga o seu progresso. Vamos registá-la e continuar. Confirma?</p><p class="incentivo">"${fraseEscolhida}"</p><button id="confirmar-recaida">Sim, confirmo</button><button id="cancelar-recaida" style="background-image: linear-gradient(to right, #aaa, #888);">Cancelar</button></div>`;
             modalEl.querySelector('.modal-close').addEventListener('click', closeAllModals);
             modalEl.querySelector('#cancelar-recaida').addEventListener('click', closeAllModals);
             modalEl.querySelector('#confirmar-recaida').addEventListener('click', registrarRecaida);
@@ -542,22 +574,33 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
             const agora = new Date();
             const dataInicioStreak = new Date(dados.dataUltimaRecaida || dados.dataInicio);
             const diffMsStreak = agora - dataInicioStreak;
+            const diffHoursStreak = diffMsStreak / 3600000;
 
             const dias = Math.floor(diffMsStreak / (1000 * 60 * 60 * 24));
             const horas = Math.floor((diffMsStreak / (1000 * 60 * 60)) % 24);
             const minutos = Math.floor((diffMsStreak / 1000 / 60) % 60);
             const tempoAbstinencia = `${dias}d ${horas}h ${minutos}m`;
 
-            const cigarrosEvitadosStreak = Math.floor((dados.cigarrosPorDia / 24) * (diffMsStreak / 3600000));
-            const dinheiroEconomizadoStreak = parseFloat((cigarrosEvitadosStreak * (dados.precoMaco / 20)));
-
-            dados.totalCigarrosEvitadosAntesRecaida = (dados.totalCigarrosEvitadosAntesRecaida || 0) + cigarrosEvitadosStreak;
-            dados.totalDinheiroEconomizadoAntesRecaida = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+            if (dados.tipoJornada === 'cigarro') {
+                const cigarrosEvitadosStreak = Math.floor((dados.cigarrosPorDia / 24) * diffHoursStreak);
+                const dinheiroEconomizadoStreak = parseFloat((cigarrosEvitadosStreak * (dados.precoMaco / 20)));
+                dados.totalCigarrosEvitadosAntesRecaida = (dados.totalCigarrosEvitadosAntesRecaida || 0) + cigarrosEvitadosStreak;
+                dados.totalDinheiroEconomizadoAntesRecaida = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+            } else { // vape
+                const mlPorMs = dados.mlPorSemana / (7 * 24 * 60 * 60 * 1000);
+                const custoPorMl = dados.custoLiquido / dados.tamanhoLiquido;
+                const mlEvitadosStreak = diffMsStreak * mlPorMs;
+                const dinheiroEconomizadoStreak = mlEvitadosStreak * custoPorMl;
+                const nicotinaEvitadaStreak = mlEvitadosStreak * dados.nicotinaMgMl;
+                dados.totalMlEvitadosAntesRecaida = (dados.totalMlEvitadosAntesRecaida || 0) + mlEvitadosStreak;
+                dados.totalNicotinaEvitadaAntesRecaida = (dados.totalNicotinaEvitadaAntesRecaida || 0) + nicotinaEvitadaStreak;
+                dados.totalDinheiroEconomizadoAntesRecaida = (dados.totalDinheiroEconomizadoAntesRecaida || 0) + dinheiroEconomizadoStreak;
+            }
             dados.dataUltimaRecaida = agora.toISOString();
-
             localStorage.setItem('dadosFumante', JSON.stringify(dados));
+            dadosSalvos = dados; // Atualiza a variável local
             
-            const textoDiario = `Tive uma recaída após ${tempoAbstinencia} sem fumar. Recomeçando, mas sem desistir!`;
+            const textoDiario = `Tive uma recaída após ${tempoAbstinencia} de abstinência. Recomeçando, mas sem desistir!`;
             salvarDiario(textoDiario, agora.toISOString());
 
             closeAllModals();
@@ -568,13 +611,7 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
 
         function openResetModal() {
             const modalEl = document.getElementById('reset-modal');
-            modalEl.innerHTML = `<div class="modal-content">
-                <span class="modal-close">&times;</span>
-                <h2>Atenção!</h2>
-                <p>Tem a certeza de que quer apagar TODOS os seus dados? Esta ação é irreversível e todo o seu progresso será perdido.</p>
-                <button id="confirmar-reset">Sim, apagar tudo</button>
-                <button id="cancelar-reset" style="background-image: linear-gradient(to right, #aaa, #888);">Cancelar</button>
-            </div>`;
+            modalEl.innerHTML = `<div class="modal-content"><span class="modal-close">&times;</span><h2>Atenção!</h2><p>Tem a certeza de que quer apagar TODOS os seus dados? Esta ação é irreversível e todo o seu progresso será perdido.</p><button id="confirmar-reset">Sim, apagar tudo</button><button id="cancelar-reset" style="background-image: linear-gradient(to right, #aaa, #888);">Cancelar</button></div>`;
             modalEl.querySelector('.modal-close').addEventListener('click', closeAllModals);
             modalEl.querySelector('#cancelar-reset').addEventListener('click', closeAllModals);
             modalEl.querySelector('#confirmar-reset').addEventListener('click', resetTotal);
@@ -588,13 +625,7 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
         }
 
         // --- NOTIFICAÇÕES E SERVICE WORKER ---
-        function registerServiceWorker() { 
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('service-worker.js')
-                .then(reg => console.log('Service Worker registrado com sucesso!', reg))
-                .catch(err => console.error('Falha ao registrar Service Worker:', err));
-            }
-        }
+        function registerServiceWorker() { if ('serviceWorker' in navigator) { navigator.serviceWorker.register('service-worker.js').then(reg => console.log('Service Worker registrado com sucesso!', reg)).catch(err => console.error('Falha ao registrar Service Worker:', err)); } }
         function requestNotificationPermission() { if ('Notification' in window) Notification.requestPermission(); }
         function showNotification(title, body) { if (Notification.permission === 'granted') { navigator.serviceWorker.ready.then(reg => reg.showNotification(title, { body, icon: 'icons/icon-192x192.png', vibrate: [200, 100, 200] })); } }
 
@@ -602,26 +633,13 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
         let deferredPrompt;
         const installContainer = document.getElementById('install-container');
         const installBtn = document.getElementById('btn-install');
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installContainer.classList.remove('hidden');
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                console.log(`User response to the install prompt: ${outcome}`);
-                deferredPrompt = null;
-                installContainer.classList.add('hidden');
-            }
-        });
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; installContainer.classList.remove('hidden'); });
+        installBtn.addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; console.log(`User response to the install prompt: ${outcome}`); deferredPrompt = null; installContainer.classList.add('hidden'); } });
 
         // --- INICIALIZAÇÃO DO APP ---
         function iniciarApp(dados) {
             registerServiceWorker();
+            document.getElementById('escolha-jornada').classList.add('hidden');
             document.getElementById('configuracao-inicial').classList.add('hidden');
             document.getElementById('app-content').classList.remove('hidden');
             renderAllSections();
@@ -633,8 +651,31 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
 
         if (dadosSalvos) {
             iniciarApp(dadosSalvos);
+        } else {
+            document.getElementById('escolha-jornada').classList.remove('hidden');
+            document.getElementById('escolha-jornada').style.opacity = 1;
+            document.getElementById('escolha-jornada').style.transform = 'translateY(0)';
         }
 
+        function setupChoice(tipo) {
+            tipoJornadaSelecionada = tipo;
+            document.getElementById('escolha-jornada').classList.add('hidden');
+            const configInicial = document.getElementById('configuracao-inicial');
+            configInicial.classList.remove('hidden');
+
+            if (tipo === 'cigarro') {
+                document.getElementById('config-titulo').textContent = 'Jornada: Parar de Fumar';
+                document.getElementById('form-cigarro').classList.remove('hidden');
+                document.getElementById('form-vape').classList.add('hidden');
+            } else {
+                document.getElementById('config-titulo').textContent = 'Jornada: Parar com o Vape';
+                document.getElementById('form-vape').classList.remove('hidden');
+                document.getElementById('form-cigarro').classList.add('hidden');
+            }
+        }
+        document.getElementById('btn-escolhe-cigarro').addEventListener('click', () => setupChoice('cigarro'));
+        document.getElementById('btn-escolhe-vape').addEventListener('click', () => setupChoice('vape'));
+        
         document.getElementById('btn-iniciar').addEventListener('click', () => {
             const errorEl = document.getElementById('error-message');
             errorEl.textContent = ''; 
@@ -642,42 +683,61 @@ footer { text-align: center; margin-top: 40px; color: var(--text-secondary-color
             const nomeUsuario = document.getElementById('nome-usuario').value;
             const idadeUsuario = document.getElementById('idade-usuario').value;
             const sexoUsuario = document.getElementById('sexo-usuario').value;
-            const cigarrosPorDia = document.getElementById('cigarros-por-dia').value;
-            const precoMaco = document.getElementById('preco-maco').value;
             const metaNome = document.getElementById('meta-nome').value;
             const metaValor = document.getElementById('meta-valor').value;
 
-            if (!nomeUsuario.trim() || !idadeUsuario || !cigarrosPorDia || !precoMaco || !metaNome.trim() || !metaValor) {
-                errorEl.textContent = "Por favor, preencha todos os campos.";
-                return;
-            }
-
-            const dados = {
+            let dados = {
+                tipoJornada: tipoJornadaSelecionada,
                 nomeUsuario: nomeUsuario,
                 idadeUsuario: parseFloat(idadeUsuario),
                 sexoUsuario: sexoUsuario,
-                cigarrosPorDia: parseFloat(cigarrosPorDia),
-                precoMaco: parseFloat(precoMaco),
                 metaNome: metaNome,
                 metaValor: parseFloat(metaValor),
                 dataInicio: new Date().toISOString(),
                 dataUltimaRecaida: null,
-                totalCigarrosEvitadosAntesRecaida: 0,
                 totalDinheiroEconomizadoAntesRecaida: 0
             };
+            let camposValidos = true;
 
-            if (dados.idadeUsuario > 0 && dados.cigarrosPorDia > 0 && dados.precoMaco > 0 && dados.metaValor > 0) {
+            if (tipoJornadaSelecionada === 'cigarro') {
+                const cigarrosPorDia = document.getElementById('cigarros-por-dia').value;
+                const precoMaco = document.getElementById('preco-maco').value;
+                if (!cigarrosPorDia || !precoMaco) camposValidos = false;
+                dados.cigarrosPorDia = parseFloat(cigarrosPorDia);
+                dados.precoMaco = parseFloat(precoMaco);
+                dados.totalCigarrosEvitadosAntesRecaida = 0;
+            } else {
+                const mlPorSemana = document.getElementById('ml-por-semana').value;
+                const custoLiquido = document.getElementById('custo-liquido').value;
+                const tamanhoLiquido = document.getElementById('tamanho-liquido').value;
+                const nicotinaMgMl = document.getElementById('nicotina-mg-ml').value;
+                if (!mlPorSemana || !custoLiquido || !tamanhoLiquido || nicotinaMgMl === '') camposValidos = false;
+                dados.mlPorSemana = parseFloat(mlPorSemana);
+                dados.custoLiquido = parseFloat(custoLiquido);
+                dados.tamanhoLiquido = parseFloat(tamanhoLiquido);
+                dados.nicotinaMgMl = parseFloat(nicotinaMgMl);
+                dados.totalMlEvitadosAntesRecaida = 0;
+                dados.totalNicotinaEvitadaAntesRecaida = 0;
+            }
+
+            if (!nomeUsuario.trim() || !idadeUsuario || !metaNome.trim() || !metaValor || !camposValidos) {
+                errorEl.textContent = "Por favor, preencha todos os campos.";
+                return;
+            }
+            
+            if (dados.idadeUsuario > 0 && dados.metaValor > 0 && ((dados.cigarrosPorDia || 0) > 0 || (dados.mlPorSemana || 0) > 0) ) {
                 localStorage.setItem('dadosFumante', JSON.stringify(dados));
                 localStorage.setItem('conquistasSalvas', JSON.stringify({}));
                 localStorage.setItem('diarioSalvo', JSON.stringify([]));
+                dadosSalvos = dados;
                 conquistasSalvas = {};
                 diarioSalvo = [];
                 iniciarApp(dados);
             } else {
-                errorEl.textContent = "Por favor, insira valores válidos nos campos numéricos.";
+                errorEl.textContent = "Por favor, insira valores numéricos válidos e maiores que zero.";
             }
         });
     });
-    </script>
+</script>
 </body>
 </html>
